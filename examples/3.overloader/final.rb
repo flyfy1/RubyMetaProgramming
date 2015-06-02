@@ -1,4 +1,4 @@
-module Overrider
+module Overloader
   def self.included(clz)
     clz.extend ClassMethods
   end
@@ -53,7 +53,7 @@ METHOD_BODY
 end
 
 class A
-  include Overrider
+  include Overloader
 
   def m1(a,b)
     puts "A#m1(#{a},#{b})"
