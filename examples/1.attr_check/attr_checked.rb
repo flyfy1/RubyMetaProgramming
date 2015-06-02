@@ -1,6 +1,6 @@
 require 'rspec'
 
-class AgeTooYoungException < Exception; end
+class AttributeException < Exception; end
 
 module CheckedAttributes  
   def self.included(clz)
@@ -13,7 +13,7 @@ module CheckedAttributes
           end
 
           define_method (attr.to_s+'=') do |v|
-            raise AgeTooYoungException if v <= 10
+            raise AttributeException if v <= 10
             instance_variable_set('@'+attr.to_s, v)
           end
         end
@@ -40,7 +40,7 @@ RSpec.describe Person do
   end
 
   it 'should not allow age above 10' do
-    expect{ me.age = 4}.to raise_error(AgeTooYoungException)
+    expect{ me.age = 4}.to raise_error(AttributeException)
   end
 end
 me = Person.new
