@@ -1,35 +1,33 @@
 require 'rspec'
 
-class AttributeException < Exception; end
+class ValidationError < Exception; end
 
 module CheckedAttributes  
-  def self.included(clz)
-    clz.instance_eval do
-      define_singleton_method :attr_checked do |attr,&blk|
-        # Approach 1
-        clz.class_eval do
-          define_method attr do
-            instance_variable_get('@'+attr.to_s)
-          end
+  def self.included(clz) 
+    clz.extend ClassMethods
+  end
 
-          define_method (attr.to_s+'=') do |v|
-            raise AttributeException if v <= 10
-            instance_variable_set('@'+attr.to_s, v)
-          end
-        end
+  module ClassMethods
+    def attr_checked(attr, &validation)
+      define_method "#{attr}=" do |v|
+        raise ValidationError unless validation.call(v)
+        instance_variable_set("@#{attr}",v)
+      end
 
-        # Approach 2
+      define_method attr do
+        instance_variable_get("@#{attr}")
       end
     end
   end
 end
 
+
 class Person
   include CheckedAttributes
-  attr_checked(:age)
+  attr_checked(:age) {|n| n > 10}
 end
 
-# Person.attr_checked(:nani)
+p = Person.new
 
 RSpec.describe Person do
   me = Person.new
@@ -40,7 +38,7 @@ RSpec.describe Person do
   end
 
   it 'should not allow age above 10' do
-    expect{ me.age = 4}.to raise_error(AttributeException)
+    expect{ me.age = 4}.to raise_error(ValidationError)
   end
 end
 me = Person.new
